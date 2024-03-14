@@ -1,3 +1,4 @@
+// No componente Card
 import React from "react";
 import { Vacation } from "@/schemas/create.schema";
 import Image from "next/image";
@@ -8,10 +9,15 @@ import download from "../../assets/Downloading.svg";
 
 interface CardProps {
   vacation: Vacation;
+  onDownloadClick: (id: string) => void; // Adicione a propriedade para a função de download
 }
 
-const Card: React.FC<CardProps> = ({ vacation }) => {
+const Card: React.FC<CardProps> = ({ vacation, onDownloadClick }) => {
   const { id, title, date, description, location, participants } = vacation;
+
+  const handleDownload = () => {
+    onDownloadClick(id); // Chame a função onDownloadClick passando o id do card
+  };
 
   return (
     <section id={id} className="border p-4 m-4">
@@ -37,7 +43,7 @@ const Card: React.FC<CardProps> = ({ vacation }) => {
           <Image src={eye} alt="olho" />
           <Image src={trash} alt="lixeira" />
           <Image src={pen} alt="caneta" />
-          <Image src={download} alt="download" />
+          <Image src={download} alt="download" onClick={handleDownload} />
         </div>
       </div>
     </section>

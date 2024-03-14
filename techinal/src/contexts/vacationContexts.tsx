@@ -23,7 +23,7 @@ interface VacationProviderData {
   selectVacation: (id: string) => void;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isModalOpen: boolean;
-  readVacation: (id: string) => void;
+  readVacation: () => void;
 }
 
 export type Participant = {
@@ -59,6 +59,7 @@ export const VacationProvider: React.FC<{ children: React.ReactNode }> = ({
       .post("/vacations", data)
       .then((res: any) => {
         setVacations(res.data);
+        setIsModalOpen(false);
       })
       .catch((error: any) => {
         console.log(error);
@@ -88,7 +89,7 @@ export const VacationProvider: React.FC<{ children: React.ReactNode }> = ({
     setSelectedVacation(foundVacation);
   };
 
-  const readVacation = (id: string): void => {
+  const readVacation = () => {
     api.get("vacations").then((res) => {
       setVacations(res.data);
     });
