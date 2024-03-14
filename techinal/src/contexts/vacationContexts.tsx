@@ -1,58 +1,119 @@
 import { Vacation, VacationCreateSchema } from "@/schemas/create.schema";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid"
+import api from "@/api/api";
 
-interface VacationProviderData{
-    vacations: Vacation[];
-    selectedVacation: Vacation | null;
-    createVacation: (data: z.input<typeof VacationCreateSchema>) => void;
-    updateVacation: (id: string, data: z.input<typeof VacationCreateSchema>) => void;
-    deleteVacation: (id: string) => void;
-    selectVacation: (id: string) => void;
+interface VacationProviderData {
+  vacations: Vacation[];
+  setVacations: Dispatch<SetStateAction<Vacation[]>>;
+  selectedVacation: Vacation | null;
+  createVacation: (data: z.input<typeof VacationCreateSchema>) => void;
+  updateVacation: (
+    id: string,
+    data: z.input<typeof VacationCreateSchema>
+  ) => void;
+  deleteVacation: (id: string) => void;
+  selectVacation: (id: string) => void;
+  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isModalOpen: boolean;
+  readVacation: (id: string) => void;
 }
 
-const VacationContext = createContext<VacationProviderData>({} as VacationProviderData)
+export type Participant = {
+  name: string;
+};
 
-export const VacationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [vacations, setVacations] = useState<Vacation[]>([]);
-    const [selectedVacation, setSelectedVacation] = useState<Vacation | null>(null);
+export type TypeVacation = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  participants: Participant[];
+};
 
-    useEffect(()=> {
+const VacationContext = createContext<VacationProviderData>(
+  {} as VacationProviderData
+);
 
-    }, [])
+export const VacationProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [vacations, setVacations] = useState<Vacation[]>([]);
+  const [selectedVacation, setSelectedVacation] = useState<Vacation | null>(
+    null
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const createVacation = (data: z.input<typeof VacationCreateSchema>): void => {
-        const newVacation: Vacation = {
-            ...data,
-            id: uuidv4()
-        }
-        setVacations((prevVacations) => [...prevVacations, newVacation])
-    }
+  useEffect(() => {}, []);
 
-    const updateVacation = (id: string, data: z.input<typeof VacationCreateSchema>): void => {
-        setVacations((prevVacations) => prevVacations.map((vacation) => vacation.id === id ? {...data, id} : vacation))
-    }
+  const createVacation = (data: z.input<typeof VacationCreateSchema>): void => {
+    api
+      .post("/vacations", data)
+      .then((res: any) => {
+        setVacations(res.data);
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  };
 
-    const deleteVacation = (id: string): void => {
-        setVacations((prevVacations) => prevVacations.filter((vacation) => vacation.id !== id))
-    }
+  const updateVacation = (
+    id: string,
+    data: z.input<typeof VacationCreateSchema>
+  ): void => {
+    setVacations((prevVacations) =>
+      prevVacations.map((vacation) =>
+        vacation.id === id ? { ...data, id } : vacation
+      )
+    );
+  };
 
-    const selectVacation = (id: string): void => {
-        const foundVacation = vacations.find((vacation) => vacation.id === id) || null
-        setSelectedVacation(foundVacation)
-    }
+  const deleteVacation = (id: string): void => {
+    setVacations((prevVacations) =>
+      prevVacations.filter((vacation) => vacation.id !== id)
+    );
+  };
 
-    return(<VacationContext.Provider
-        value={{
-          vacations,
-          selectedVacation,
-          createVacation,
-          updateVacation,
-          deleteVacation,
-          selectVacation,
-        }}> {children} </VacationContext.Provider>)
-}
+  const selectVacation = (id: string): void => {
+    const foundVacation =
+      vacations.find((vacation) => vacation.id === id) || null;
+    setSelectedVacation(foundVacation);
+  };
 
-export const useVacation = (): VacationProviderData => useContext(VacationContext)
+  const readVacation = (id: string): void => {
+    api.get("vacations").then((res) => {
+      setVacations(res.data);
+    });
+  };
 
+  return (
+    <VacationContext.Provider
+      value={{
+        vacations,
+        setVacations,
+        selectedVacation,
+        createVacation,
+        updateVacation,
+        deleteVacation,
+        selectVacation,
+        isModalOpen,
+        setIsModalOpen,
+        readVacation,
+      }}
+    >
+      {" "}
+      {children}{" "}
+    </VacationContext.Provider>
+  );
+};
+
+export const useVacation = (): VacationProviderData =>
+  useContext(VacationContext);
